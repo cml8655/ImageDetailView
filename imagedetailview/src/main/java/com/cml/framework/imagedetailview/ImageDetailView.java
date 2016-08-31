@@ -56,8 +56,6 @@ public class ImageDetailView extends RelativeLayout {
     public void show(Activity activity, View fromView) {
         assertHasViewAdapter();
         decorView = (ViewGroup) activity.getWindow().getDecorView();
-
-
     }
 
     private void assertHasViewAdapter() {
