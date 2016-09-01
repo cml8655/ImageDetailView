@@ -1,5 +1,6 @@
 package com.cml.framework.imagedetailview;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -16,5 +17,9 @@ public class MainActivity extends AppCompatActivity {
         taiChiProgressView.setMaxProgress(100);
         taiChiProgressView.setProgress(5);
         taiChiProgressView.setSize(250);
+
+        taiChiProgressView.setBgColor(Color.DKGRAY);
+        taiChiProgressView.setLeftTaichiColor(Color.GREEN);
+        taiChiProgressView.setRightTaichiColor(Color.BLUE);
     }
 }

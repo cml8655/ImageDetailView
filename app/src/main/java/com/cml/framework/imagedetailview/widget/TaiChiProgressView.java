@@ -2,7 +2,6 @@ package com.cml.framework.imagedetailview.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Handler;
@@ -23,11 +22,16 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
     private float progress;
     private float maxProgress;
 
+    private int bgColor;
+    private int leftTaichiColor;
+    private int rightTaichiColor;
+
     /**
      * 太极最小半径
      */
     private float size = 20;
     private float rotateOffset;
+    private boolean isExpand = true;
 
     private Handler handler;
 
@@ -36,20 +40,32 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         public void run() {
             Canvas canvas = holder.lockCanvas();
             if (null != canvas) {
-                canvas.drawColor(Color.YELLOW);
+                canvas.drawColor(getBgColor());
                 drawTaichi(canvas);
                 holder.unlockCanvasAndPost(canvas);
             }
-            spacing += 10;
+            if (isExpand) {
+                spacing += 1;
+            } else {
+                spacing -= 1;
+            }
+
             progress++;
+//            spacing = maxOutRadius - size;
             if (spacing >= maxOutRadius - size) {
-                spacing = 0;
+                isExpand = false;
+                spacing = maxOutRadius - size;
+            } else {
+                if (spacing <= 0) {
+                    spacing = 0;
+                    isExpand = true;
+                }
             }
             if (progress > maxProgress) {
                 progress = 0;
             }
             rotateOffset++;
-            handler.postDelayed(this, 50);
+            handler.postDelayed(this, 10);
         }
     };
 
@@ -75,7 +91,6 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         holder.addCallback(this);
 
         outPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        outPaint.setColor(Color.BLUE);
         outPaint.setStyle(Paint.Style.FILL);
         outPaint.setStrokeWidth(1);
 
@@ -96,47 +111,76 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
     }
 
     private void drawTaichi(Canvas canvas) {
+        outPaint.setColor(getRightTaichiColor());
+        float sinSpacing = (float) (spacing * Math.sin(Math.PI / 180 * (90 + rotateOffset)));
+        float cosSpacing = (float) (spacing * Math.cos(Math.PI / 180 * (90 + rotateOffset)));
 
-        //顺时针转动
-//        canvas.rotate(-getProgressPercent() * 360, getWidth() / 2, getHeight() / 2);
 
-        outPaint.setColor(Color.BLUE);
         //右侧半圆
-        canvas.drawArc(new RectF(getWidth() / 2 - size, getHeight() / 2 - size, getWidth() / 2 + size, getHeight() / 2 + size), 270 + rotateOffset, 180, false, outPaint);
+        canvas.drawArc(new RectF(getWidth() / 2 - size + sinSpacing, getHeight() / 2 - size - cosSpacing, getWidth() / 2 + size + sinSpacing, getHeight() / 2 + size - cosSpacing), 270 + rotateOffset, 180, false, outPaint);
         //左边部分
-        outPaint.setColor(Color.GREEN);
+        outPaint.setColor(getLeftTaichiColor());
         //左侧半圆
-        canvas.drawArc(new RectF(getWidth() / 2 - size, getHeight() / 2 - size, getWidth() / 2 + size, getHeight() / 2 + size), 90 + rotateOffset, 180, false, outPaint);
+        canvas.drawArc(new RectF(getWidth() / 2 - size - sinSpacing, getHeight() / 2 - size + cosSpacing, getWidth() / 2 + size - sinSpacing, getHeight() / 2 + size + cosSpacing), 90 + rotateOffset, 180, false, outPaint);
 
-//        //左下圆
-//        canvas.drawArc(new RectF(getWidth() / 2 - size / 2, getHeight() / 2, getWidth() / 2 + size / 2, getHeight() / 2 + size), 0, 360, false, outPaint);
-//
-        outPaint.setColor(Color.BLUE);
+        outPaint.setColor(getRightTaichiColor());
 
-        canvas.save();
-        outPaint.setColor(Color.RED);
-//        canvas.drawCircle((float) (getWidth() / 2 + (size / 2) * Math.sin(rotateOffset / Math.PI)), (float) (getHeight() / 2 - (size / 2) * Math.cos(rotateOffset / Math.PI)), size / 2, outPaint);
-//        //右上圆
         float r = size / 2;
-        float angel = (float) ((90 - rotateOffset) / Math.PI);
+
+        float angel = (float) (-Math.PI / 180 * rotateOffset);
         float xd = (float) (r * Math.sin(angel));
         float yd = (float) (r * Math.cos(angel));
+        //左下圆
+        canvas.drawArc(new RectF(getWidth() / 2 - r + xd + sinSpacing, getHeight() / 2 - r + yd - cosSpacing, getWidth() / 2 + r + xd + sinSpacing, getHeight() / 2 + r + yd - cosSpacing), 89 + rotateOffset, 182, false, outPaint);
 
-        canvas.drawArc(new RectF(getWidth() / 2 - r + xd, getHeight() / 2 - r + yd, getWidth() / 2 + r + xd, getHeight() / 2 + r + yd), 90 + rotateOffset, 180, false, outPaint);
-        canvas.restore();
+        outPaint.setColor(getBgColor());
+        canvas.drawArc(new RectF(getWidth() / 2 - r - xd + sinSpacing, getHeight() / 2 - r - yd - cosSpacing, getWidth() / 2 + r - xd + sinSpacing, getHeight() / 2 + r - yd - cosSpacing), 269 + rotateOffset, 182, false, outPaint);
+//
+        outPaint.setColor(getLeftTaichiColor());
+        //右上圆
+        xd = -xd;
+        yd = -yd;
+        //不是90度开始是为了解决连接处的白线
+        canvas.drawArc(new RectF(getWidth() / 2 - r + xd - sinSpacing, getHeight() / 2 - r + yd + cosSpacing, getWidth() / 2 + r + xd - sinSpacing, getHeight() / 2 + r + yd + cosSpacing), 269 + rotateOffset, 181, false, outPaint);
+        outPaint.setColor(getBgColor());
+        if (spacing >= xd / 2) {
+            canvas.drawArc(new RectF(getWidth() / 2 - r - xd - sinSpacing, getHeight() / 2 - r - yd + cosSpacing, getWidth() / 2 + r - xd - sinSpacing, getHeight() / 2 + r - yd + cosSpacing), 90 + rotateOffset, 181, false, outPaint);
+        }
+
     }
-    //------------------------
-//    canvas.drawArc(new RectF(getWidth() / 2 - size + xRotateOffset, getHeight() / 2 - size + yRotateOffset, getWidth() / 2 + size + xRotateOffset, getHeight() / 2 + size + yRotateOffset), 270 + rotateOffset, 180 + rotateOffset, false, outPaint);
+    //--------------------可自由旋转----
+    //顺时针转动
+//        canvas.rotate(-getProgressPercent() * 360, getWidth() / 2, getHeight() / 2);
+
+//    outPaint.setColor(Color.BLUE);
+//    //右侧半圆
+//    canvas.drawArc(new RectF(getWidth() / 2 - size, getHeight() / 2 - size, getWidth() / 2 + size, getHeight() / 2 + size), 270 + rotateOffset, 180, false, outPaint);
 //    //左边部分
 //    outPaint.setColor(Color.GREEN);
 //    //左侧半圆
-//    canvas.drawArc(new RectF(getWidth() / 2 - size, getHeight() / 2 - size, getWidth() / 2 + size, getHeight() / 2 + size), 90, 180, false, outPaint);
-//        //左下圆
-//        canvas.drawArc(new RectF(getWidth() / 2 - size / 2, getHeight() / 2, getWidth() / 2 + size / 2, getHeight() / 2 + size), 0, 360, false, outPaint);
+//    canvas.drawArc(new RectF(getWidth() / 2 - size, getHeight() / 2 - size, getWidth() / 2 + size, getHeight() / 2 + size), 90 + rotateOffset, 180, false, outPaint);
 //
-//        outPaint.setColor(Color.BLUE);
-//        //右上圆
-//        canvas.drawArc(new RectF(getWidth() / 2 - size / 2, getHeight() / 2 - size, getWidth() / 2 + size / 2, getHeight() / 2), 90, 180, false, outPaint);
+////        //左下圆
+////        canvas.drawArc(new RectF(getWidth() / 2 - size / 2, getHeight() / 2, getWidth() / 2 + size / 2, getHeight() / 2 + size), 0, 360, false, outPaint);
+////
+//    outPaint.setColor(Color.BLUE);
+//
+//    float r = size / 2;
+////        canvas.drawCircle((float) (getWidth() / 2 + r * Math.sin(Math.PI / 180 * rotateOffset)), (float) (getHeight() / 2 - r * Math.cos(Math.PI / 180 * rotateOffset)), r, outPaint);
+//
+//    float angel = (float) (-Math.PI / 180 * rotateOffset);
+//    float xd = (float) (r * Math.sin(angel));
+//    float yd = (float) (r * Math.cos(angel));
+//    //左下圆
+//    canvas.drawArc(new RectF(getWidth() / 2 - r + xd, getHeight() / 2 - r + yd, getWidth() / 2 + r + xd, getHeight() / 2 + r + yd), 89 + rotateOffset, 182, false, outPaint);
+//
+//    outPaint.setColor(Color.GREEN);
+//    //右上圆
+//    xd = -xd;
+//    yd = -yd;
+//    //不是90度开始是为了解决连接处的白线
+//    canvas.drawArc(new RectF(getWidth() / 2 - r + xd, getHeight() / 2 - r + yd, getWidth() / 2 + r + xd, getHeight() / 2 + r + yd), 269 + rotateOffset, 181, false, outPaint);
+
 //--------------------
 
     public float getProgressPercent() {
@@ -162,6 +206,30 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
 
     public float getMaxProgress() {
         return maxProgress;
+    }
+
+    public int getLeftTaichiColor() {
+        return leftTaichiColor;
+    }
+
+    public void setLeftTaichiColor(int leftTaichiColor) {
+        this.leftTaichiColor = leftTaichiColor;
+    }
+
+    public int getRightTaichiColor() {
+        return rightTaichiColor;
+    }
+
+    public void setRightTaichiColor(int rightTaichiColor) {
+        this.rightTaichiColor = rightTaichiColor;
+    }
+
+    public int getBgColor() {
+        return bgColor;
+    }
+
+    public void setBgColor(int bgColor) {
+        this.bgColor = bgColor;
     }
 
     public void setMaxProgress(float maxProgress) {
