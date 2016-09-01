@@ -7,6 +7,7 @@ import android.graphics.RectF;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -51,21 +52,21 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
             }
 
             progress++;
-//            spacing = maxOutRadius - size;
-            if (spacing >= maxOutRadius - size) {
-                isExpand = false;
-                spacing = maxOutRadius - size;
-            } else {
-                if (spacing <= 0) {
-                    spacing = 0;
-                    isExpand = true;
-                }
-            }
+            spacing =10;
+//            if (spacing >= maxOutRadius - size) {
+//                isExpand = false;
+//                spacing = maxOutRadius - size;
+//            } else {
+//                if (spacing <= 0) {
+//                    spacing = 0;
+//                    isExpand = true;
+//                }
+//            }
             if (progress > maxProgress) {
                 progress = 0;
             }
             rotateOffset++;
-            handler.postDelayed(this, 10);
+            handler.postDelayed(this, 500);
         }
     };
 
@@ -127,9 +128,9 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
 
         float r = size / 2;
 
-        float angel = (float) (-Math.PI / 180 * rotateOffset);
-        float xd = (float) (r * Math.sin(angel));
-        float yd = (float) (r * Math.cos(angel));
+        float angle = (float) (-Math.PI / 180 * rotateOffset);
+        float xd = (float) (r * Math.sin(angle));
+        float yd = (float) (r * Math.cos(angle));
         //左下圆
         canvas.drawArc(new RectF(getWidth() / 2 - r + xd + sinSpacing, getHeight() / 2 - r + yd - cosSpacing, getWidth() / 2 + r + xd + sinSpacing, getHeight() / 2 + r + yd - cosSpacing), 89 + rotateOffset, 182, false, outPaint);
 
@@ -146,6 +147,8 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         if (spacing >= xd / 2) {
             canvas.drawArc(new RectF(getWidth() / 2 - r - xd - sinSpacing, getHeight() / 2 - r - yd + cosSpacing, getWidth() / 2 + r - xd - sinSpacing, getHeight() / 2 + r - yd + cosSpacing), 90 + rotateOffset, 181, false, outPaint);
         }
+
+        Log.i("test", "angel:" + rotateOffset + ",space:" + spacing);
 
     }
     //--------------------可自由旋转----
