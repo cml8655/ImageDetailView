@@ -2,9 +2,11 @@ package com.cml.framework.imagedetailview.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -44,6 +46,7 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         public void run() {
             Canvas canvas = holder.lockCanvas();
             if (null != canvas) {
+//                canvas.drawCircle(getWidth() / 2, getHeight() / 2, maxOutRadius, outPaint);
                 canvas.drawColor(getBgColor());
                 drawTaichi(canvas);
                 holder.unlockCanvasAndPost(canvas);
@@ -62,10 +65,10 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
                     expandAble = false;
                     tmp = 20;
                 } else {
-                    if (spacing <= 0) {
+                    if (spacing <= 120) {
                         tmp = 20;
                         expandAble = false;
-                        spacing = 0;
+                        spacing = 120;
                         isExpand = true;
                     }
                 }
@@ -112,6 +115,7 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         outPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         outPaint.setStyle(Paint.Style.FILL);
         outPaint.setStrokeWidth(1);
+        outPaint.setTextSize(44);
 
         HandlerThread thread = new HandlerThread("tiachi");
         thread.start();
@@ -140,7 +144,6 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
 
         outPaint.setColor(getRightTaichiColor());
 
-
         int bgLayer = canvas.saveLayer(new RectF(0, 0, getWidth(), getHeight()), outPaint, Canvas.ALL_SAVE_FLAG);
 
         float r = size / 2;
@@ -166,6 +169,16 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         canvas.drawArc(new RectF(getWidth() / 2 - r - xd - sinSpacing, getHeight() / 2 - r - yd + cosSpacing, getWidth() / 2 + r - xd - sinSpacing, getHeight() / 2 + r - yd + cosSpacing), 90 + rotateOffset, 181, false, outPaint);
         outPaint.setXfermode(null);
         canvas.restoreToCount(bgLayer);
+
+        outPaint.setColor(Color.WHITE);
+        if (spacing >= 120) {
+            String txt = spacing + "";
+            Rect txtBounds = new Rect();
+            outPaint.getTextBounds(txt, 0, txt.length(), txtBounds);
+            canvas.drawText(spacing + "", getWidth() / 2 - txtBounds.width() / 2, getHeight() / 2 - txtBounds.height() / 2, outPaint);
+//            canvas.drawCircle(getWidth() / 2, getHeight() / 2, 150, outPaint);
+        }
+
 
     }
     //--------------------可自由旋转----
