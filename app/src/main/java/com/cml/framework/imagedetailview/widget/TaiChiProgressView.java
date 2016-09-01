@@ -3,11 +3,12 @@ package com.cml.framework.imagedetailview.widget;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -33,6 +34,8 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
     private float size = 20;
     private float rotateOffset;
     private boolean isExpand = true;
+    private boolean expandAble = true;
+    private float tmp;
 
     private Handler handler;
 
@@ -45,28 +48,43 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
                 drawTaichi(canvas);
                 holder.unlockCanvasAndPost(canvas);
             }
-            if (isExpand) {
-                spacing += 1;
+
+            if (expandAble) {
+                if (isExpand) {
+                    spacing += 10;
+                } else {
+                    spacing -= 10;
+                }
+
+                if (spacing >= maxOutRadius - size) {
+                    isExpand = false;
+                    spacing = maxOutRadius - size;
+                    expandAble = false;
+                    tmp = 20;
+                } else {
+                    if (spacing <= 0) {
+                        tmp = 20;
+                        expandAble = false;
+                        spacing = 0;
+                        isExpand = true;
+                    }
+                }
             } else {
-                spacing -= 1;
+//                spacing = 0;
+                if (tmp > 0) {
+                    tmp--;
+                } else {
+                    expandAble = true;
+                }
             }
 
             progress++;
-            spacing =10;
-//            if (spacing >= maxOutRadius - size) {
-//                isExpand = false;
-//                spacing = maxOutRadius - size;
-//            } else {
-//                if (spacing <= 0) {
-//                    spacing = 0;
-//                    isExpand = true;
-//                }
-//            }
+
             if (progress > maxProgress) {
                 progress = 0;
             }
-            rotateOffset++;
-            handler.postDelayed(this, 500);
+            rotateOffset += 10;
+            handler.postDelayed(this, 10);
         }
     };
 
@@ -107,10 +125,6 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
     }
 
 
-    private void drawOutCircle(Canvas canvas) {
-        canvas.drawCircle(getWidth() / 2, getHeight() / 2, size, outPaint);
-    }
-
     private void drawTaichi(Canvas canvas) {
         outPaint.setColor(getRightTaichiColor());
         float sinSpacing = (float) (spacing * Math.sin(Math.PI / 180 * (90 + rotateOffset)));
@@ -126,16 +140,19 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
 
         outPaint.setColor(getRightTaichiColor());
 
+
+        int bgLayer = canvas.saveLayer(new RectF(0, 0, getWidth(), getHeight()), outPaint, Canvas.ALL_SAVE_FLAG);
+
         float r = size / 2;
 
         float angle = (float) (-Math.PI / 180 * rotateOffset);
         float xd = (float) (r * Math.sin(angle));
         float yd = (float) (r * Math.cos(angle));
         //左下圆
-        canvas.drawArc(new RectF(getWidth() / 2 - r + xd + sinSpacing, getHeight() / 2 - r + yd - cosSpacing, getWidth() / 2 + r + xd + sinSpacing, getHeight() / 2 + r + yd - cosSpacing), 89 + rotateOffset, 182, false, outPaint);
+        canvas.drawArc(new RectF(getWidth() / 2 - r + xd + sinSpacing, getHeight() / 2 - r + yd - cosSpacing, getWidth() / 2 + r + xd + sinSpacing, getHeight() / 2 + r + yd - cosSpacing), 89 + rotateOffset, 181, false, outPaint);
 
         outPaint.setColor(getBgColor());
-        canvas.drawArc(new RectF(getWidth() / 2 - r - xd + sinSpacing, getHeight() / 2 - r - yd - cosSpacing, getWidth() / 2 + r - xd + sinSpacing, getHeight() / 2 + r - yd - cosSpacing), 269 + rotateOffset, 182, false, outPaint);
+        canvas.drawArc(new RectF(getWidth() / 2 - r - xd + sinSpacing, getHeight() / 2 - r - yd - cosSpacing, getWidth() / 2 + r - xd + sinSpacing, getHeight() / 2 + r - yd - cosSpacing), 269 + rotateOffset, 181, false, outPaint);
 //
         outPaint.setColor(getLeftTaichiColor());
         //右上圆
@@ -143,12 +160,12 @@ public class TaiChiProgressView extends SurfaceView implements SurfaceHolder.Cal
         yd = -yd;
         //不是90度开始是为了解决连接处的白线
         canvas.drawArc(new RectF(getWidth() / 2 - r + xd - sinSpacing, getHeight() / 2 - r + yd + cosSpacing, getWidth() / 2 + r + xd - sinSpacing, getHeight() / 2 + r + yd + cosSpacing), 269 + rotateOffset, 181, false, outPaint);
-        outPaint.setColor(getBgColor());
-        if (spacing >= xd / 2) {
-            canvas.drawArc(new RectF(getWidth() / 2 - r - xd - sinSpacing, getHeight() / 2 - r - yd + cosSpacing, getWidth() / 2 + r - xd - sinSpacing, getHeight() / 2 + r - yd + cosSpacing), 90 + rotateOffset, 181, false, outPaint);
-        }
 
-        Log.i("test", "angel:" + rotateOffset + ",space:" + spacing);
+        outPaint.setColor(getBgColor());
+        outPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OVER));
+        canvas.drawArc(new RectF(getWidth() / 2 - r - xd - sinSpacing, getHeight() / 2 - r - yd + cosSpacing, getWidth() / 2 + r - xd - sinSpacing, getHeight() / 2 + r - yd + cosSpacing), 90 + rotateOffset, 181, false, outPaint);
+        outPaint.setXfermode(null);
+        canvas.restoreToCount(bgLayer);
 
     }
     //--------------------可自由旋转----
